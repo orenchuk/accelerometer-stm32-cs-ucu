@@ -1,10 +1,12 @@
 /**
   ******************************************************************************
-  * @file    stm32f3xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @file    stm32f3xx_hal_spi_ex.h
+  * @author  MCD Application Team
+  * @brief   Header file of SPI HAL Extended module.
   ******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -32,28 +34,58 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F3xx_IT_H
-#define __STM32F3xx_IT_H
+#ifndef __STM32F3xx_HAL_SPI_EX_H
+#define __STM32F3xx_HAL_SPI_EX_H
 
 #ifdef __cplusplus
- extern "C" {
-#endif 
+extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f3xx_hal.h"
-#include "main.h"
+#include "stm32f3xx_hal_def.h"
+
+/** @addtogroup STM32F3xx_HAL_Driver
+  * @{
+  */
+
+/** @addtogroup SPIEx
+  * @{
+  */
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
+/* Exported macros -----------------------------------------------------------*/
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup SPIEx_Exported_Functions
+  * @{
+  */
 
-void SysTick_Handler(void);
-void USB_LP_CAN_RX0_IRQHandler(void);
+/* Initialization and de-initialization functions  ****************************/
+/* IO operation functions *****************************************************/
+/** @addtogroup SPIEx_Exported_Functions_Group1
+  * @{
+  */
+HAL_StatusTypeDef HAL_SPIEx_FlushRxFifo(SPI_HandleTypeDef *hspi);
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32F3xx_IT_H */
+#endif /* __STM32F3xx_HAL_SPI_EX_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

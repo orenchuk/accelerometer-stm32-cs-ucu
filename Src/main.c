@@ -3,35 +3,45 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
+  * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
   * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * All rights reserved.
   *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
+  * Redistribution and use in source and binary forms, with or without 
+  * modification, are permitted, provided that the following conditions are met:
   *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  * 1. Redistribution of source code must retain the above copyright notice, 
+  *    this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of other 
+  *    contributors to this software may be used to endorse or promote products 
+  *    derived from this software without specific written permission.
+  * 4. This software, including modifications and/or derivative works of this 
+  *    software, must execute solely and exclusively on microcontroller or
+  *    microprocessor devices manufactured by or for STMicroelectronics.
+  * 5. Redistribution and use of this software other than as permitted under 
+  *    this license is void and will automatically terminate your rights under 
+  *    this license. 
+  *
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
+  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
@@ -39,7 +49,15 @@
 #include "main.h"
 #include "stm32f3xx_hal.h"
 #include "i2c.h"
+#include "spi.h"
+#include "usb_device.h"
 #include "gpio.h"
+#include "math.h"
+#include "accelerometer.h"
+#include "gyro.h"
+#include "stdio.h"
+#include "string.h"
+#include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -68,8 +86,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	extern void initialise_monitor_handles(void);
-	initialise_monitor_handles();
+//	extern void initialise_monitor_handles(void);
+//	initialise_monitor_handles();
 
   /* USER CODE END 1 */
 
@@ -92,28 +110,38 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_SPI1_Init();
+  MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
 
-  if(BSP_ACCELERO_Init() != HAL_OK)
-  {
-      /* Initialization Error */
-	  printf("Error initializing HAL.");
-      while(1) {}
-  }
+  accelerometer_init();
+  gyro_init();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int16_t buffer[3] = {0};
+  int16_t accelero[3] = {0};
+  float gyro[3] = {0};
+
   while (1)
   {
-	  BSP_ACCELERO_GetXYZ(buffer);
-	  printf("%i %i %i \n", buffer[0],buffer[1],buffer[2]);
-	  printf("%g %g %g \n", (double)(buffer[0]/16)/1000.0,
-			  (double)(buffer[1]/16)/1000.0,
-			  (double)(buffer[2]/16)/1000.0);
+	  accelerometer_readXYZ(accelero);
+	  gyro_readXYZ(gyro);
+
+	  char temp[150];
+	  sprintf(temp, "Accelero: x:%g y:%g z:%g, len %g, max_accelero_len: %g \n\n\r", (double)(accelero[0]/16)/1000.0, (double)(accelero[1]/16)/1000.0,
+			  (double)(accelero[2]/16)/1000.0);
+	  CDC_Transmit_FS(temp, strlen(temp));
+	  HAL_Delay(500);
+
+	  char temp1[150];
+	  sprintf(temp1, "Gyro: x:%g y:%g z:%g, len %g, max_gyro_len: %g \n\n\r", (double)(gyro[0])/1000.0, (double)(gyro[1])/1000.0,
+			  			  (double)(gyro[2])/1000.0);
+	  CDC_Transmit_FS(temp1, strlen(temp1));
+	  HAL_Delay(500);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -134,12 +162,14 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -159,8 +189,9 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB|RCC_PERIPHCLK_I2C1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.USBClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
