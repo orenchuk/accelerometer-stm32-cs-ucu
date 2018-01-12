@@ -131,14 +131,12 @@ int main(void)
 	  gyro_readXYZ(gyro);
 
 	  char temp[150];
-	  sprintf(temp, "Accelero: x:%g y:%g z:%g, len %g, max_accelero_len: %g \n\n\r", (double)(accelero[0]/16)/1000.0, (double)(accelero[1]/16)/1000.0,
-			  (double)(accelero[2]/16)/1000.0);
+	  sprintf(temp, "Accelero: x:%g y:%g z:%g \n\r", (double)(accelero[0]/16)/1000.0, (double)(accelero[1]/16)/1000.0, (double)(accelero[2]/16)/1000.0);
 	  CDC_Transmit_FS(temp, strlen(temp));
 	  HAL_Delay(500);
 
 	  char temp1[150];
-	  sprintf(temp1, "Gyro: x:%g y:%g z:%g, len %g, max_gyro_len: %g \n\n\r", (double)(gyro[0])/1000.0, (double)(gyro[1])/1000.0,
-			  			  (double)(gyro[2])/1000.0);
+	  sprintf(temp1, "Gyro: x:%g y:%g z:%g \n\r", (double)(gyro[0])/1000.0, (double)(gyro[1])/1000.0, (double)(gyro[2])/1000.0);
 	  CDC_Transmit_FS(temp1, strlen(temp1));
 	  HAL_Delay(500);
 
